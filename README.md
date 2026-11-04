@@ -6,13 +6,13 @@
 
 ## 安装
 
-通过 DSH 官方插件管理器安装并启用。以 `web` profile 为例，npm 发布后可运行：
+通过 DSH 官方插件管理器安装并启用。以 `web` profile 为例：
 
 ```sh
 dsh plugin --profile web add dsh-lark-plugin@latest
 ```
 
-此命令是 npm 安装方式说明，不代表包已发布。其他 profile 请替换 `web`。
+其他 profile 请替换 `web`。
 
 官方 CLI 需要单独安装。在 **DSH Host 所在机器**上，以运行 DSH 的同一系统用户执行：
 
