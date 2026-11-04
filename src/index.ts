@@ -63,11 +63,11 @@ export function apply(ctx: PluginContext, config: Config): void {
   const base = fileURLToPath(new URL('../skills/lark-workspace/', import.meta.url));
   const skill: SkillCandidate = {
     name:'lark-workspace', description:'Read and write Feishu cloud documents, embedded tables, Sheets and Base through lark_cli; find resources and manage authorization.',
-    source:'bundled',provider:'dsh-lark-connect',invocation:{modelInvocable:true,userInvocable:true},
+    source:'bundled',provider:'dsh-lark-plugin',invocation:{modelInvocable:true,userInvocable:true},
     resourceBase:{kind:'directory',path:base},rank:0,locator:'lark-workspace',
   };
   ctx.skills.registerProvider(() => ({
-    name:'dsh-lark-connect',
+    name:'dsh-lark-plugin',
     async list() { return [skill]; },
     async get() { return {...skill,content:await readFile(new URL('../skills/lark-workspace/SKILL.md',import.meta.url),'utf8')}; },
   }));

@@ -1,6 +1,6 @@
 # 仓库维护约定
 
-本目录维护 DSH Host 插件 `dsh-lark-connect`，通过官方 `lark-cli` 提供飞书文档、Sheets、Base 和 Drive 工具。用户安装与使用说明放在 [README.md](README.md)；源码约束、验证和发布流程集中在本文件。
+本目录维护 DSH Host 插件 `dsh-lark-plugin`，通过官方 `lark-cli` 提供飞书文档、Sheets、Base 和 Drive 工具。用户安装与使用说明放在 [README.md](README.md)；源码约束、验证和发布流程集中在本文件。
 
 ## 环境与范围
 

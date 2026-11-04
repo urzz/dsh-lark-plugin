@@ -1,15 +1,15 @@
-# 飞书文档与表格 · Lark Connect
+# 飞书文档与表格 · DSH Lark Plugin
 
 让 DSH 智能体通过官方 `lark-cli` 读取和修改飞书云文档、电子表格与多维表格，搜索云空间资源，并完成用户授权。
 
-包名：`dsh-lark-connect` · Node.js ≥22 · 计划支持 DSH `>=0.2.1-rc.5 <0.3.0-0`，开发与验证基线为 `0.2.1-rc.5`。
+包名：`dsh-lark-plugin` · Node.js ≥22 · 计划支持 DSH `>=0.2.1-rc.5 <0.3.0-0`，开发与验证基线为 `0.2.1-rc.5`。
 
 ## 安装
 
 通过 DSH 官方插件管理器安装并启用。以 `web` profile 为例，npm 发布后可运行：
 
 ```sh
-dsh plugin --profile web add dsh-lark-connect@latest
+dsh plugin --profile web add dsh-lark-plugin@latest
 ```
 
 此命令是 npm 安装方式说明，不代表包已发布。其他 profile 请替换 `web`。
