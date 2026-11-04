@@ -1,0 +1,4 @@
+- insert:
+    - id: lark-connect
+      name: dsh-lark-connect
+      config: {}
