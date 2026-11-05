@@ -1,6 +1,6 @@
 {
   "name": "dsh-lark-plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "repository": { "type": "git", "url": "git+https://github.com/urzz/dsh-lark-plugin.git" },
   "homepage": "https://github.com/urzz/dsh-lark-plugin#readme",
@@ -8,7 +8,7 @@
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org" },
   "packageManager": "pnpm@10.34.9",
   "keywords": ["dsh", "cordis", "feishu", "lark", "sheets", "documents"],
-  "description": "Feishu cloud documents, spreadsheets and Base through the official Lark CLI for DSH",
+  "description": "Connect agents to knowledge and data in Feishu so they can take part in everyday teamwork.",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
