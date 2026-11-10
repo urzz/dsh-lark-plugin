@@ -56,6 +56,10 @@ export function LarkConfig(props: LarkConfigProps) {
   </label>;
   return <form className="dsh-lark-config" aria-label={t('title')} aria-busy={pending !== null} onSubmit={event => { event.preventDefault(); void save(false); }}>
     <p className="dsh-lark-hint">{t('shared')}</p>
+    <p className="dsh-lark-hint">
+      <a href={values.brand === 'lark' ? 'https://open.larksuite.com/app' : 'https://open.feishu.cn/app'} target="_blank" rel="noopener noreferrer">{t('manageApps')}</a>
+      {' '}{t('credentialsHint')}
+    </p>
     <fieldset disabled={disabled}>
       {input('appId')}
       <label><span>{t('appSecret')}</span>

@@ -6,6 +6,7 @@
 .dsh-lark-config input, .dsh-lark-config select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 34px; padding: 6px 12px; border: .5px solid var(--dsw-alias-border-l4); border-radius: var(--dsw-radius-md); background: var(--dsw-alias-bg-layer-3); color: var(--dsw-alias-label-primary); font: inherit; font-weight: 400; }
 .dsh-lark-config small, .dsh-lark-config .dsh-lark-hint { color: var(--dsw-alias-label-secondary); font-size: 12px; font-weight: 400; }
 .dsh-lark-config p { margin: 8px 0; overflow-wrap: anywhere; }
+.dsh-lark-config a { color: var(--dsw-alias-label-primary); text-decoration: underline; text-underline-offset: 2px; }
 .dsh-lark-config details { margin-top: 12px; border-top: .5px solid var(--dsw-alias-border-l2); }
 .dsh-lark-config summary { padding: 12px 0; cursor: pointer; font-size: 14px; font-weight: 600; }
 .dsh-lark-config .dsh-lark-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
