@@ -1,5 +1,9 @@
 export interface RunnerOptions {
     executable: string;
+    /** Plugin-owned profile; never accepted from model arguments. */
+    profile?: string;
+    /** Host-only fixed application initialization. */
+    allowConfig?: boolean;
     cwd: string;
     timeoutMs: number;
     maxOutputBytes: number;

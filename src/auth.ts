@@ -117,7 +117,7 @@ export function createAuth(runCli: RunCli) {
       let diagnostic: unknown;
       try { diagnostic = JSON.parse(result.stderr ?? 'null'); } catch { /* Plain diagnostics stay private. */ }
       if (record(diagnostic) && record(diagnostic.error) && diagnostic.error.type === 'config' && diagnostic.error.subtype === 'not_configured') {
-        return error('failed', 'not_configured', 'Lark CLI application is not configured. Run lark-cli auth --help and complete application setup on the host before starting user authorization.');
+        return error('failed', 'not_configured', 'Lark CLI application is not configured. Set App ID and App Secret in the plugin settings, or configure the external CLI on the host before starting user authorization.');
       }
       return error('failed', 'auth_cli_failed', 'Authentication command failed. Check application configuration, authorization, and connectivity.');
     }

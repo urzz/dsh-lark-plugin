@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 2,
+  "workspace": {
+    "kind": "git",
+    "branch": "bundled-lark-config",
+    "baseCommit": "dc463ad2dffebee6b7215d804ca4c1fd1765f523",
+    "projectPath": ""
+  },
+  "id": "20261110-bundled-cli-config",
+  "title": "内置官方 CLI 与原生应用配置自动初始化",
+  "revision": 7,
+  "createdAt": "2026-11-10T13:52:07.892Z",
+  "updatedAt": "2026-11-10T14:33:50.338Z",
+  "documents": {
+    "intent": {
+      "version": 1,
+      "path": "intent.md",
+      "digest": "d0462154c352c49fb30d851e1e44ce084caa10663faa0581e4a6f0b1736ad0ca",
+      "basedOn": {},
+      "reason": "登记已展示且用户确认的需求"
+    },
+    "spec": {
+      "version": 1,
+      "path": "spec.md",
+      "digest": "7dd5e8e72e0695c173f9a2d7dd5b477befc932e4ac5c9d7dba9c6adcb97ee12b",
+      "basedOn": {
+        "intent": 1
+      },
+      "reason": "登记用户已审核的方案及原生 UI 约束"
+    },
+    "plan": {
+      "version": 2,
+      "path": "plan.md",
+      "digest": "8c882051d5d0fa64b945fe047334bd6611390ac311f38f15e2a643d7387024c4",
+      "basedOn": {
+        "intent": 1,
+        "spec": 1
+      },
+      "reason": "原生配置并非自动渲染；补齐用户要求的 client 表单与动态配置接入，具名 CLI 防止登录重置"
+    }
+  },
+  "workflow": {
+    "phase": "done",
+    "status": "active",
+    "reason": "内置固定官方CLI、外部覆盖、私有具名初始化、动态配置、原生设计client与文档均完成；无提交/发布/用户profile变更",
+    "nextAction": "Delivered"
+  },
+  "decisions": [
+    {
+      "id": "intent-approved",
+      "kind": "intent-confirmation",
+      "subjects": {
+        "intent": 1
+      },
+      "scope": "内置依赖、插件配置应用信息和自动初始化",
+      "source": {
+        "quote": "好，确认需要做这个优化",
+        "context": "当前会话，紧接明确展示的实现方案；事件号未提供",
+        "recordedBy": "agent"
+      },
+      "recordedAt": "2026-11-10T13:53:00.254Z"
+    },
+    {
+      "id": "spec-approved",
+      "kind": "spec-review",
+      "subjects": {
+        "intent": 1,
+        "spec": 1
+      },
+      "scope": "固定 npm 依赖、Host stdin 自动初始化及 DSH 原生配置 UI",
+      "source": {
+        "quote": "好，确认需要做这个优化；配置页面的UI和交互需要对其dsh本身的设计",
+        "context": "当前会话，对前述具体方案确认并增加 UI 一致性约束",
+        "recordedBy": "agent"
+      },
+      "recordedAt": "2026-11-10T13:53:00.254Z"
+    },
+    {
+      "id": "implementation-approved",
+      "kind": "implementation-authorization",
+      "subjects": {
+        "intent": 1,
+        "spec": 1
+      },
+      "scope": "本插件实现与本地验证，不包含 profile 安装或发布",
+      "source": {
+        "quote": "好，确认需要做这个优化",
+        "context": "当前会话用户授权",
+        "recordedBy": "agent"
+      },
+      "recordedAt": "2026-11-10T13:53:00.254Z"
+    }
+  ],
+  "acceptance": {
+    "specVersion": 1,
+    "items": [
+      {
+        "id": "A1",
+        "anchor": "spec.md#验收",
+        "required": true
+      },
+      {
+        "id": "A2",
+        "anchor": "spec.md#验收",
+        "required": true
+      },
+      {
+        "id": "A3",
+        "anchor": "spec.md#验收",
+        "required": true
+      },
+      {
+        "id": "A4",
+        "anchor": "spec.md#验收",
+        "required": true
+      }
+    ]
+  },
+  "execution": [
+    {
+      "stepId": "P1",
+      "acceptanceIds": [
+        "A1",
+        "A2",
+        "A3"
+      ],
+      "mode": "direct",
+      "status": "completed",
+      "note": "内置 CLI / 具名初始化 / volatile 配置生效完成，Host 36测试通过"
+    },
+    {
+      "stepId": "P2",
+      "acceptanceIds": [
+        "A4"
+      ],
+      "mode": "direct",
+      "status": "completed",
+      "note": "原生配置 client 与文档完成；独立浏览器 actual-component 隔离预览通过桌面/窄屏及全部约定流程；已清理预览环境"
+    }
+  ],
+  "verification": [
+    {
+      "id": "V-check",
+      "acceptanceIds": [
+        "A1",
+        "A2",
+        "A3",
+        "A4"
+      ],
+      "specVersion": 1,
+      "outcome": "passed",
+      "method": "pnpm check; git diff --check; npm pack --dry-run",
+      "subject": "最终未提交实现和构建产物",
+      "environment": "Node26/pnpm10.34.9，DSH0.2.1-rc.5依赖，假subprocess",
+      "evidenceRefs": [
+        ".dev-docs/changes/20261110-bundled-cli-config/evidence/checks.md"
+      ],
+      "summary": "41个测试全部通过、类型检查/构建/打包通过；A2此记录仅自动测试，浏览器证据另行登记",
+      "recordedAt": "2026-11-10T14:24:09.620Z"
+    },
+    {
+      "id": "V-ui",
+      "acceptanceIds": [
+        "A2"
+      ],
+      "specVersion": 1,
+      "outcome": "passed",
+      "method": "fresh verifier 浏览器检查原生参照+实际组件隔离预览",
+      "subject": "实际LarkConfig组件与DSH原生参照",
+      "environment": "已安装DSH0.2.2-rc.1仅参照；实际组件内存ConfigForm适配器、桌面和390px窄屏",
+      "evidenceRefs": [
+        ".dev-docs/changes/20261110-bundled-cli-config/evidence/ui-verification.md",
+        ".dev-docs/changes/20261110-bundled-cli-config/evidence/lark-component-desktop.png"
+      ],
+      "summary": "保存/pending/重置保留凭证/移除与既有CLI模式/冲突/discard/只读/失败恢复全部通过；无实际Host注册持久化或真实账号浏览器验收声明",
+      "recordedAt": "2026-11-10T14:33:50.338Z"
+    }
+  ],
+  "blockers": [],
+  "closure": {
+    "delivery": "implementation",
+    "summary": "内置固定官方CLI、外部覆盖、私有具名初始化、动态配置、原生设计client与文档均完成；无提交/发布/用户profile变更",
+    "acceptanceIds": [
+      "A1",
+      "A2",
+      "A3",
+      "A4"
+    ],
+    "satisfaction": "已完成授权范围实现与可审阅交付；41测试/构建/打包及组件浏览器验证通过；未安装当前profile或真实账号初始化，验证边界已明确",
+    "knowledge": {
+      "status": "updated",
+      "summary": "更新安装/内置程序下载与具名应用配置、秘密处理、共享登录态、Web可选配置入口及维护约定",
+      "refs": [
+        "README.md",
+        "AGENTS.md",
+        "skills/lark-workspace/SKILL.md",
+        ".dev-docs/index.md"
+      ]
+    },
+    "evidenceRefs": [
+      ".dev-docs/changes/20261110-bundled-cli-config/evidence/checks.md",
+      ".dev-docs/changes/20261110-bundled-cli-config/evidence/ui-verification.md"
+    ],
+    "recordedAt": "2026-11-10T14:33:50.338Z"
+  }
+}

@@ -31,4 +31,4 @@ CLI 退出成功不等于所有子操作成功，检查 data 内 result、warnin
 
 ## 授权
 
-先 lark_auth status；未登录使用 login_start，向用户原样展示授权链接并结束回复。用户确认后使用返回的 flow_id 执行 login_complete。缺 scope 时说明缺失范围；插件不保存第二份 access token。logout 影响共用该 CLI 凭证的会话。初始化应用由运维通过 CLI 完成，应用密钥不进入工具参数。
+先 lark_auth status；未登录使用 login_start，向用户原样展示授权链接并结束回复。用户确认后使用返回的 flow_id 执行 login_complete。缺 scope 时说明缺失范围；插件不保存第二份 access token。logout 影响共用该 CLI 凭证的会话。应用可在 DSH 插件原生配置中填写 App ID、App Secret 和平台，由 Host 自动初始化；均留空则沿用 CLI 已有配置。应用密钥不进入工具参数，不在聊天中收集或展示，不尝试通过业务工具运行 config init。首次使用内置 CLI 可能下载平台程序。

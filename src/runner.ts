@@ -1,5 +1,13 @@
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
 export interface RunnerOptions {
   executable: string;
+  /** Plugin-owned profile; never accepted from model arguments. */
+  profile?: string;
+  /** Host-only fixed application initialization. */
+  allowConfig?: boolean;
   cwd: string;
   timeoutMs: number;
   maxOutputBytes: number;
@@ -70,6 +78,7 @@ export function prepareArgs(args: string[]): string[] {
     const arg = args[index]!;
     const [flag, inline] = arg.split('=', 2);
     if (arg === '--' && business) throw new Error('The argument separator is not supported for business commands.');
+    if (flag === '--profile') throw new Error('CLI profiles are managed by the plugin configuration.');
     if (flag === '--yes') throw new Error('High-risk confirmation bypass is not supported.');
     if (flag === '--jq' || /^-[^-]*q/.test(arg)) throw new Error('JSON filtering would hide the CLI result envelope.');
     if (flag === '--as') {
@@ -94,10 +103,11 @@ export function createRunner(subprocess: RunnerSubprocess, options: RunnerOption
   return async (args: string[], stdin?: string, signal?: AbortSignal): Promise<CliResult> => {
     let argv: string[];
     try {
-      argv = options.allowAuth && args[0] === 'auth' ? [...args] : prepareArgs(args);
+      argv = (options.allowAuth && args[0] === 'auth') || (options.allowConfig && args[0] === 'config') ? [...args] : prepareArgs(args);
     } catch (error) {
       return { status: 'failed', exitCode: null, reason: (error as Error).message };
     }
+    if (options.profile) argv.push('--profile', options.profile);
     const controller = new AbortController();
     let timedOut = false;
     let cancelled = signal?.aborted ?? false;
@@ -107,10 +117,14 @@ export function createRunner(subprocess: RunnerSubprocess, options: RunnerOption
     const timer = setTimeout(() => { timedOut = true; controller.abort(); }, options.timeoutMs);
     let spawned = false;
     try {
-      const executable = await subprocess.resolveExecutable(options.executable, undefined, controller.signal);
+      const external = options.executable.trim();
+      const executable = external
+        ? await subprocess.resolveExecutable(external, undefined, controller.signal)
+        : process.execPath;
+      const prefix = external ? [] : [require.resolve('@larksuite/cli/scripts/run.js')];
       if (controller.signal.aborted) return { status: 'unknown', exitCode: null, timedOut, cancelled, reason: 'Execution interrupted; verify remote state before repeating the operation.' };
       const handle = subprocess.spawn({
-        argv: [executable, ...argv],
+        argv: [executable, ...prefix, ...argv],
         cwd: options.cwd,
         stdio: {
           stdin: stdin === undefined ? 'ignore' : { data: stdin },

@@ -39,6 +39,7 @@ test('denies other domains, identity overrides, confirmation bypass and hidden e
   for (const args of [
     [], ['auth', 'login'], ['api', 'POST', '/path'], ['im', '+send'], ['config', 'set'],
     ['docs', '--as', 'bot'], ['docs', '--as=bot'], ['docs', '--as=user', '--as=bot'],
+    ['docs', '--profile', 'other'], ['schema', '--profile=other'], ['--help', '--profile', 'other'],
     ['drive', '--yes'], ['drive', '--yes=true'], ['drive', '--yes=false'],
     ['docs', '--jq', '.data'], ['docs', '--jq=.data'], ['docs', '-q', '.data'], ['docs', '-q.data'], ['docs', '-hq.data'],
     ['docs', '--format', 'text'], ['docs', '--output-format=yaml'], ['docs', '--output=text'], ['docs', '-otext'],

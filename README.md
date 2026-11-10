@@ -16,16 +16,13 @@ dsh plugin --profile web add dsh-lark-plugin@latest
 
 其他 profile 请替换 `web`。
 
-官方 CLI 需要单独安装。在 **DSH Host 所在机器**上，以运行 DSH 的同一系统用户执行：
+插件依赖固定版本的官方 `@larksuite/cli@1.0.98`，默认使用依赖中的 CLI，无需全局安装。官方 npm 包会下载对应平台的原生程序；若安装脚本被禁用，首次调用时会下载，因此首次使用仍需访问下载服务，并非离线分发。
 
-```sh
-npx @larksuite/cli@latest install
-lark-cli config init
-```
+在 Web 插件管理器的配置页填写 **App ID**、**App Secret**，选择飞书或 Lark 并保存。表单沿用 DSH 的主题、字段布局和设置保存协议；密钥以密码输入显示，留空保存时保留已有密钥。重置其他配置会保留 App ID 与密钥；使用“移除应用凭证”可同时清空两者，切回 CLI 已有配置。保存后 Host 使用新配置，首次调用时自动初始化应用，无需手动执行 `lark-cli config init`。密钥通过 stdin 传递，不进入模型工具参数或命令行参数。密码显示不代表额外的加密存储保证。工具本身仍运行于 Host，非 Web profile 可通过宿主配置提供相同字段。
 
-初始化时交互选择使用已有应用，填写该应用的 App ID 和 App Secret，并按提示完成飞书开放平台权限配置。应用密钥和用户凭证由 CLI 管理，不填入插件配置或聊天消息。确保该系统用户可执行 `lark-cli`；找不到命令时可配置其绝对路径。
+飞书开放平台上的应用权限仍需由用户配置；用户 OAuth 登录也仍需完成。不要在聊天消息中发送 App Secret。应用配置和登录态由同一 Host 系统用户下的 CLI 管理。填写应用信息时，插件使用具名 CLI 配置 `dsh-lark-plugin`，更新同一 App ID 时保留用户关联，切换 App ID 后需要重新授权；不同 DSH profile 使用该名称时仍会共享配置。每次加载或保存新配置后，首次调用会执行一次初始化；失败后需检查配置并重新加载或保存后再试。
 
-当前 CLI 验证基线为 `1.0.98`；升级 CLI 后，命令与返回格式可能变化。
+已有 CLI 用户可设置 `executable` 使用外部程序；应用信息均留空时沿用 CLI 已有配置。外部 CLI 升级后，命令与返回格式可能变化，当前验证基线为 `1.0.98`。
 
 ## 开始使用
 
@@ -39,7 +36,7 @@ lark-cli config init
 
 智能体通过 `lark-workspace` Skill 获取操作指导，先识别资源与目标范围，再调用工具；修改后回读受影响内容。
 
-如需先在终端完成最小范围的 Sheets 授权，可由同一 Host 系统用户执行：
+使用外部 CLI 且应用已在其活动配置中初始化时，如需先在终端完成最小范围的 Sheets 授权，可由同一 Host 系统用户执行：
 
 ```sh
 lark-cli auth login --domain sheets
@@ -110,7 +107,10 @@ Sheets 的实际账户读写和公式回读已验证。Docx 和 Base 已实现�
 
 | 字段 | 默认值 | 说明 |
 | --- | --- | --- |
-| `executable` | `lark-cli` | CLI 可执行文件名称或绝对路径。 |
+| `appId` | 空 | 飞书/Lark 应用 App ID；与 App Secret 一起填写以启用自动初始化。 |
+| `appSecret` | 空 | 应用密钥，使用原生密钥输入；不进入模型工具参数。 |
+| `brand` | `feishu` | 应用所属平台：`feishu` 或 `lark`。 |
+| `executable` | 空（内置依赖） | 非空时使用外部 CLI 可执行文件名称或绝对路径。 |
 | `cwd` | `process.cwd()`（插件加载时的 Host 工作目录） | CLI 文件参数的解析目录，不随聊天会话目录变化。 |
 | `timeoutMs` | `120000` | 每次调用总时限，单位为毫秒，包含程序解析与启动；最小 `1000`。 |
 | `maxOutputBytes` | `1000000` | stdout、stderr 各自的收集上限，单位为字节；范围 `1024`～`20000000`。 |
