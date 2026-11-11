@@ -21,7 +21,7 @@ export function LarkConfig(props: LarkConfigProps) {
   const [secret, setSecret] = useState('');
   const [pending, setPending] = useState<'save' | 'reset' | 'clear' | 'test' | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
-  const [testResult, setTestResult] = useState<{ status: ConnectionResult['status']; revision: number | undefined } | null>(null);
+  const [testResult, setTestResult] = useState<(ConnectionResult & { revision: number | undefined }) | null>(null);
   if (props.view === 'summary') return t('description');
   if (state.status !== 'ready' || !state.value) return <p role="status">{t(state.status === 'loading' ? 'loading' : 'unavailable')}</p>;
   const accepted = valuesOf(state.value);
@@ -54,8 +54,8 @@ export function LarkConfig(props: LarkConfigProps) {
     setMessage(null);
     try {
       const result = await props.testConnection();
-      setTestResult({ status: result.status, revision: state.revision });
-    } catch { setTestResult({ status: 'check_failed', revision: state.revision }); }
+      setTestResult({ ...result, revision: state.revision });
+    } catch { setTestResult({ status: 'remote_failed', revision: state.revision }); }
     finally { setPending(null); }
   };
   const input = (field: Field, hint?: Message) => <label key={field}>
@@ -69,6 +69,9 @@ export function LarkConfig(props: LarkConfigProps) {
   </label>;
   return <form className="dsh-lark-config" aria-label={t('title')} aria-busy={pending !== null} onSubmit={event => { event.preventDefault(); void save(false); }}>
     <p className="dsh-lark-hint">{t('shared')}</p>
+    <p className="dsh-lark-hint">{t('cliSource')}{' '}
+      {accepted.executable.trim() ? <>{t('externalCli')}{' '}<code>{accepted.executable.trim()}</code></> : t('bundledCli')}
+    </p>
     <p className="dsh-lark-hint">
       <a href={values.brand === 'lark' ? 'https://open.larksuite.com/app' : 'https://open.feishu.cn/app'} target="_blank" rel="noopener noreferrer">{t('manageApps')}</a>
       {' '}{t('credentialsHint')}
@@ -94,7 +97,7 @@ export function LarkConfig(props: LarkConfigProps) {
     {!state.writable && <p role="status">{t('readOnly')}</p>}
     {conflict && <p role="alert">{t('conflict')}</p>}
     {message && <p role={message === 'failed' || message === 'invalid' ? 'alert' : 'status'}>{t(message)}</p>}
-    {!draft && testResult && testResult.revision === state.revision && <p role={testResult.status === 'connected' ? 'status' : 'alert'}>{t(testResult.status)}</p>}
+    {!draft && testResult && testResult.revision === state.revision && <p role={testResult.status === 'connected' ? 'status' : 'alert'}>{t(testResult.status)}{testResult.status === 'remote_failed' && testResult.errorCode && <> <code>{testResult.errorCode}</code></>}</p>}
     <div className="dsh-lark-actions">
       <button className="dsh-lark-primary" type="submit" disabled={disabled || conflict || !draft}>{t(pending === 'save' ? 'saving' : 'save')}</button>
       <button type="button" disabled={pending !== null || draft !== null} aria-describedby={`${id}-test`} onClick={() => { void testConnection(); }}>{t(pending === 'test' ? 'testing' : 'testConnection')}</button>

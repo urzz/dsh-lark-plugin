@@ -49,7 +49,13 @@ test('DSH bundle loads through shared modules and registers exact plugin row', a
   const namespaces = [];
   const form = { getSnapshot() {}, subscribe() {}, mutate() {} };
   const settings = { getSnapshot() {}, subscribe() {} };
+  let response = { ok: true, value: { status: 'not_authorized' } };
+  function inject(deps, setup) {
+    assert.deepEqual(Array.from(deps), ['remote.larkConnection']);
+    return setup({ ...this, remote: { larkConnection: { async test() { return response; } } } });
+  }
   await plugin.apply({
+    inject,
     remote: { async $mount() {} },
     effect() {}, locale: { register() {} },
     configForms: { get(ns) { namespaces.push(ns); return form; }, describe() { return settings; } },
@@ -58,10 +64,16 @@ test('DSH bundle loads through shared modules and registers exact plugin row', a
   // Run effects separately so no DOM is required for stylesheet installation.
   const effects = [];
   await plugin.apply({
-    remote: { async $mount() {} }, effect(fn) { effects.push(fn); }, locale: { register() {} }, configForms: { get() { return form; }, describe() { return settings; } }, slots: { inject(name, register) { assert.equal(name, 'plugins.row.config'); return register(); }, register(spec, component) { registrations.push({ spec, component }); } } });
+    inject, remote: { async $mount() {} }, effect(fn) { effects.push(fn); }, locale: { register() {} }, configForms: { get() { return form; }, describe() { return settings; } }, slots: { inject(name, register) { assert.equal(name, 'plugins.row.config'); return register(); }, register(spec, component) { registrations.push({ spec, component }); } } });
   effects[2]();
   assert.equal(namespaces[0], 'lark-plugin');
   assert.equal(registrations[0].spec.key, 'dsh-lark-plugin#lark-plugin');
   assert.equal(registrations[0].spec.locale, 'larkPlugin');
-  assert.equal(typeof registrations[0].spec.inject().mutateConfig, 'function');
+  const face = registrations[0].spec.inject();
+  assert.equal(typeof face.mutateConfig, 'function');
+  assert.equal((await face.testConnection()).status, 'not_authorized');
+  response = { ok: false, error: { code: 'gateway/service-unavailable', message: 'private-message', details: { secret: 'private-secret' } } };
+  assert.equal(JSON.stringify(await face.testConnection()), JSON.stringify({ status: 'remote_failed', errorCode: 'gateway/service-unavailable' }));
+  response.error.code = 'private-code';
+  assert.equal(JSON.stringify(await face.testConnection()), JSON.stringify({ status: 'remote_failed' }));
 });

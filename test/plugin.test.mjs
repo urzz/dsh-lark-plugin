@@ -135,6 +135,9 @@ test('configuration connection test initializes saved settings and verifies user
   for (const [user, expected] of [
     [{ status: 'ready', available: true, verified: true }, 'connected'],
     [{ status: 'ready', available: true }, 'verification_failed'],
+    [{ status: 'needs_refresh', available: true, verified: true }, 'connected'],
+    [{ status: 'needs_refresh', available: true, verified: false }, 'verification_failed'],
+    [{ status: 'needs_refresh', available: true }, 'verification_failed'],
     [{ status: 'missing', available: false }, 'not_authorized'],
     [{ status: 'verify_failed', available: false, verified: false }, 'verification_failed'],
     [{ status: 'not_configured', available: false }, 'not_configured'],

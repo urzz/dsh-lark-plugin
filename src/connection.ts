@@ -12,7 +12,7 @@ export function connectionResult(result: AuthResult): ConnectionResult {
   const user = identities.user;
   if (user.status === 'not_configured') return { status: 'not_configured' };
   if (user.status === 'missing') return { status: 'not_authorized' };
-  return { status: user.status === 'ready' && user.available && user.verified === true ? 'connected' : 'verification_failed' };
+  return { status: (user.status === 'ready' || user.status === 'needs_refresh') && user.available && user.verified === true ? 'connected' : 'verification_failed' };
 }
 
 export class LarkConnection extends TypertRemoteService {

@@ -7,7 +7,7 @@ import { LarkConfig } from './LarkConfig.js';
 import { en, zh } from './locales.js';
 import css from './style.css';
 import type {} from '@deepseek-ai/dsh-api-remotes/client';
-import { connectionRemote } from './remote.js';
+import { connectionRemote, remoteFailure } from './remote.js';
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap { larkPlugin: keyof typeof en; }
@@ -16,6 +16,10 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
 export const inject = ['slots', 'locale', 'configForms', 'remote'];
 export async function apply(ctx: Context): Promise<void> {
   await ctx.remote.$mount(connectionRemote);
+  await ctx.inject(['remote.larkConnection'], setupConfig);
+}
+
+function setupConfig(ctx: Context): void {
   ctx.effect(() => ctx.locale.register('larkPlugin', { en, zh }));
   ctx.effect(() => {
     const style = document.createElement('style');
@@ -34,7 +38,7 @@ export async function apply(ctx: Context): Promise<void> {
     mutateConfig: (ops: Parameters<typeof form.mutate>[0], revision?: number) => form.mutate(ops, revision),
     testConnection: async () => {
       const result = await ctx.remote.larkConnection.test();
-      return result.ok ? result.value : { status: 'check_failed' as const };
+      return result.ok ? result.value : remoteFailure(result.error.code);
     },
   };
   ctx.effect(() => ctx.slots.inject('plugins.row.config', () => ctx.slots.register({
