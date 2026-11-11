@@ -1,5 +1,6 @@
 import z from '@deepseek-ai/schemastery';
 import { type RunnerSubprocess } from './runner.js';
+import type { Context } from '@deepseek-ai/cordis';
 export declare const inject: readonly ["tools", "subprocess", "skills"];
 export declare const Config: z<NoInfer<Schemastery.ObjectS<NoInfer<{
     appId: z<string, string, "defined">;
@@ -52,6 +53,7 @@ interface PluginContext {
     effect(callback: () => (() => void)): unknown;
     on(event: 'loader/volatile-update', listener: (paths: string[][]) => void): unknown;
     fiber: unknown;
+    inject(names: ['typert'], callback: (child: Context) => void): unknown;
     inject(names: ['settings'], callback: (child: {
         settings: {
             configure(options: {

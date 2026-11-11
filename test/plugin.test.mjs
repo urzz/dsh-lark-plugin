@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { apply, Config } from '../lib/index.js';
+import { Context } from '@deepseek-ai/cordis';
 
 function mount(config = {}, setupFails = false, behavior = {}) {
   const tools = new Map(); const disposers = []; let provider; const calls = [];
   const events = new Map(); const settingsCalls = []; const specs = [];
+  const remote = new Context();
   let value = Config({ executable: 'lark-cli', ...config }).get();
   const ctx = {
     tools: { register(tool) { tools.set(tool.name, tool); } },
@@ -13,6 +15,7 @@ function mount(config = {}, setupFails = false, behavior = {}) {
     fiber: { id: 'lark-test' },
     on(event, listener) { events.set(event, listener); },
     inject(names, callback) {
+      if (names[0] === 'typert') { if (config.withConnection) callback(remote); return; }
       assert.deepEqual(names, ['settings']);
       if (!config.withSettings) return;
       callback({ effect: this.effect, settings: { configure(options, fiber) { settingsCalls.push({ options, fiber }); return () => {}; } } });
@@ -23,17 +26,17 @@ function mount(config = {}, setupFails = false, behavior = {}) {
         calls.push(spec.argv); specs.push(spec);
         const auth = spec.argv[1] === 'auth';
         const config = spec.argv[1] === 'config';
-        const stdout = auth ? '' : 'help text';
+        const stdout = auth ? behavior.authData ? JSON.stringify(behavior.authData) : '' : 'help text';
         const stderr = auth ? JSON.stringify({ok:false,error:{type:'config',subtype:'not_configured',message:'never expose raw diagnostic secret'}}) : '';
         const stream = text => ({ readFrom() { return {text,nextOffset:Buffer.byteLength(text),lossy:false}; } });
         const done = behavior.pending ? new Promise(resolve => spec.signal.addEventListener('abort', () => resolve({ exitCode: null, signal: 'SIGTERM' }), { once: true }))
-          : Promise.resolve({exitCode:auth || (config && setupFails)?3:0,signal:null});
+          : Promise.resolve({exitCode:(auth && !behavior.authData) || (config && setupFails)?3:0,signal:null});
         return { done,collected:{stdout:stream(stdout),stderr:stream(stderr)} };
       },
     },
   };
   apply(ctx, { get: () => value });
-  return {tools,provider,calls,settingsCalls,specs,
+  return {tools,provider,calls,settingsCalls,specs,remote,
     update(next) { value = Config({ ...value, ...next }).get(); events.get('loader/volatile-update')([[]]); },
     dispose(){for(const dispose of disposers)dispose();}};
 }
@@ -126,6 +129,28 @@ test('live configuration aborts pending setup, auth and business work from the o
     assert.equal(init[init.indexOf('--app-id') + 1], 'new_app');
     app.dispose();
   }
+});
+
+test('configuration connection test initializes saved settings and verifies user authorization online', async () => {
+  for (const [user, expected] of [
+    [{ status: 'ready', available: true, verified: true }, 'connected'],
+    [{ status: 'ready', available: true }, 'verification_failed'],
+    [{ status: 'missing', available: false }, 'not_authorized'],
+    [{ status: 'verify_failed', available: false, verified: false }, 'verification_failed'],
+    [{ status: 'not_configured', available: false }, 'not_configured'],
+  ]) {
+    const app = mount({ withConnection: true, appId: 'cli_app', appSecret: 'private-secret' }, false, {
+      authData: { identity: 'bot', identities: { bot: { status: 'ready', available: true, verified: true }, user } },
+    });
+    assert.deepEqual(await app.remote.larkConnection.test(), { status: expected });
+    assert.deepEqual(app.calls.map(argv => argv[1]), ['config', 'auth']);
+    assert.deepEqual(app.calls[1].slice(1), ['auth', 'status', '--json', '--verify', '--profile', 'dsh-lark-plugin']);
+    app.dispose();
+  }
+  const app = mount({ withConnection: true, appId: 'cli_app', appSecret: 'private-secret' }, true);
+  assert.deepEqual(await app.remote.larkConnection.test(), { status: 'setup_failed' });
+  assert.equal(app.calls.length, 1);
+  app.dispose();
 });
 
 test('registered provider loads packaged skill and guidance', async () => {

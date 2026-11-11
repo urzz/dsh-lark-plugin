@@ -5,6 +5,8 @@ import z from '@deepseek-ai/schemastery';
 import { createRunner, prepareArgs, type RunnerSubprocess } from './runner.js';
 import { CLI_PROFILE, createSetup } from './setup.js';
 import { createAuth } from './auth.js';
+import type { Context } from '@deepseek-ai/cordis';
+import { LarkConnection, connectionResult } from './connection.js';
 
 // Adapter results contain JSON payloads and serializable process metadata.
 const resultSchema = { type: 'object', additionalProperties: true, properties: { status: { type: 'string', required: true } } } as const;
@@ -37,6 +39,7 @@ interface PluginContext {
   effect(callback: () => (() => void)): unknown;
   on(event: 'loader/volatile-update', listener: (paths: string[][]) => void): unknown;
   fiber: unknown;
+  inject(names: ['typert'], callback: (child: Context) => void): unknown;
   inject(names: ['settings'], callback: (child: {
     settings: { configure(options: { auto: boolean }, fiber: unknown): () => void };
     effect(callback: () => (() => void)): unknown;
@@ -67,6 +70,14 @@ export function apply(ctx: PluginContext, config: Config): void {
   ctx.effect(() => () => { disposed = true; runtime.dispose(); });
   ctx.inject(['settings'], child => {
     child.effect(() => child.settings.configure({ auto: false }, ctx.fiber));
+  });
+  ctx.inject(['typert'], child => {
+    new LarkConnection(child, async requestSignal => {
+      const current = runtime;
+      const signal = current.signal(requestSignal);
+      if (await current.setup.ensure(signal)) return { status: 'setup_failed' };
+      return connectionResult(await current.auth.execute({ action: 'status', verify: true }, signal));
+    });
   });
   ctx.tools.register(defineTool({
     name: 'lark_cli',

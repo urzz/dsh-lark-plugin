@@ -22,7 +22,7 @@ function Preview() {
       <button onClick={() => { state = { ...state, writable: !state.writable }; emit(); }}>Toggle read-only</button>
     </nav>
     <p>Detached review — in-memory configuration only</p>
-    <LarkConfig view="page" t={key => (locale === 'zh' ? zh : en)[key]}
+    <LarkConfig view="page" t={key => (locale === 'zh' ? zh : en)[key]} testConnection={async () => ({ status: 'connected' })}
       useConfig={selector => selector(useSyncExternalStore(subscribe, () => state))}
       useSettings={selector => selector(useSyncExternalStore(subscribe, () => settings))}
       mutateConfig={async (ops, revision) => {

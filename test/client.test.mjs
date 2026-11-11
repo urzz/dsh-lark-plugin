@@ -49,14 +49,16 @@ test('DSH bundle loads through shared modules and registers exact plugin row', a
   const namespaces = [];
   const form = { getSnapshot() {}, subscribe() {}, mutate() {} };
   const settings = { getSnapshot() {}, subscribe() {} };
-  plugin.apply({
+  await plugin.apply({
+    remote: { async $mount() {} },
     effect() {}, locale: { register() {} },
     configForms: { get(ns) { namespaces.push(ns); return form; }, describe() { return settings; } },
     slots: { inject(name, register) { return register(); }, register(spec, component) { registrations.push({ spec, component }); } },
   });
   // Run effects separately so no DOM is required for stylesheet installation.
   const effects = [];
-  plugin.apply({ effect(fn) { effects.push(fn); }, locale: { register() {} }, configForms: { get() { return form; }, describe() { return settings; } }, slots: { inject(name, register) { assert.equal(name, 'plugins.row.config'); return register(); }, register(spec, component) { registrations.push({ spec, component }); } } });
+  await plugin.apply({
+    remote: { async $mount() {} }, effect(fn) { effects.push(fn); }, locale: { register() {} }, configForms: { get() { return form; }, describe() { return settings; } }, slots: { inject(name, register) { assert.equal(name, 'plugins.row.config'); return register(); }, register(spec, component) { registrations.push({ spec, component }); } } });
   effects[2]();
   assert.equal(namespaces[0], 'lark-plugin');
   assert.equal(registrations[0].spec.key, 'dsh-lark-plugin#lark-plugin');

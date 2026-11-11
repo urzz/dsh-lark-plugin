@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import type { ConfigForm, ConfigFormSnapshot, SettingsMirrorSnapshot } from '@deepseek-ai/dsh-client-ui-settings/client';
 import { operations, removeCredentials, valid, valuesOf, type Field, type Values } from './model.js';
 import type { Message } from './locales.js';
+import type { ConnectionResult } from './remote.js';
 
 export interface LarkConfigProps {
   view: 'summary' | 'page';
@@ -9,6 +10,7 @@ export interface LarkConfigProps {
   useConfig: <T>(selector: (state: ConfigFormSnapshot<Record<string, unknown>>) => T) => T;
   useSettings: <T>(selector: (state: SettingsMirrorSnapshot) => T) => T;
   mutateConfig: ConfigForm<Record<string, unknown>>['mutate'];
+  testConnection: () => Promise<ConnectionResult>;
 }
 export function LarkConfig(props: LarkConfigProps) {
   const { t } = props;
@@ -17,8 +19,9 @@ export function LarkConfig(props: LarkConfigProps) {
   const id = useId();
   const [draft, setDraft] = useState<{ values: Values; revision: number | undefined } | null>(null);
   const [secret, setSecret] = useState('');
-  const [pending, setPending] = useState<'save' | 'reset' | 'clear' | null>(null);
+  const [pending, setPending] = useState<'save' | 'reset' | 'clear' | 'test' | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
+  const [testResult, setTestResult] = useState<{ status: ConnectionResult['status']; revision: number | undefined } | null>(null);
   if (props.view === 'summary') return t('description');
   if (state.status !== 'ready' || !state.value) return <p role="status">{t(state.status === 'loading' ? 'loading' : 'unavailable')}</p>;
   const accepted = valuesOf(state.value);
@@ -43,6 +46,16 @@ export function LarkConfig(props: LarkConfigProps) {
         setDraft(null); setSecret(''); setMessage(clear ? 'removed' : reset ? 'resetDone' : 'saved');
       } else setMessage('failed');
     } catch { setMessage('failed'); }
+    finally { setPending(null); }
+  };
+  const testConnection = async () => {
+    setPending('test');
+    setTestResult(null);
+    setMessage(null);
+    try {
+      const result = await props.testConnection();
+      setTestResult({ status: result.status, revision: state.revision });
+    } catch { setTestResult({ status: 'check_failed', revision: state.revision }); }
     finally { setPending(null); }
   };
   const input = (field: Field, hint?: Message) => <label key={field}>
@@ -81,12 +94,15 @@ export function LarkConfig(props: LarkConfigProps) {
     {!state.writable && <p role="status">{t('readOnly')}</p>}
     {conflict && <p role="alert">{t('conflict')}</p>}
     {message && <p role={message === 'failed' || message === 'invalid' ? 'alert' : 'status'}>{t(message)}</p>}
+    {!draft && testResult && testResult.revision === state.revision && <p role={testResult.status === 'connected' ? 'status' : 'alert'}>{t(testResult.status)}</p>}
     <div className="dsh-lark-actions">
       <button className="dsh-lark-primary" type="submit" disabled={disabled || conflict || !draft}>{t(pending === 'save' ? 'saving' : 'save')}</button>
+      <button type="button" disabled={pending !== null || draft !== null} aria-describedby={`${id}-test`} onClick={() => { void testConnection(); }}>{t(pending === 'test' ? 'testing' : 'testConnection')}</button>
       <button type="button" disabled={pending !== null || !draft} onClick={discard}>{t('discard')}</button>
       <button type="button" disabled={disabled || conflict} aria-describedby={`${id}-reset`} onClick={() => { void save(true); }}>{t(pending === 'reset' ? 'resetting' : 'reset')}</button>
       <button type="button" disabled={disabled || conflict || (!accepted.appId && secretSet !== true)} onClick={() => { void save(false, true); }}>{t(pending === 'clear' ? 'removing' : 'remove')}</button>
     </div>
+    <p id={`${id}-test`} className="dsh-lark-hint">{t(draft ? 'testSaveFirst' : 'testHint')}</p>
     <p id={`${id}-reset`} className="dsh-lark-hint">{t('resetHint')}</p>
   </form>;
 }
